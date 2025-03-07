@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .question {
+            margin-bottom: 15px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e0f7da;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+        }
+        .participants {
+            margin-top: 30px;
+        }
+        .participant {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
+        }
+        .disabled {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .result-item {
+            margin-bottom: 10px;
+        }
+        .correct-icon {
+            color: green;
+        }
+        .incorrect-icon {
+            color: red;
+        }
+    </style>
+    <script>
+        // Funkcja do zapisania danych uczestnika
+        function saveParticipantAnswers(name, answers) {
+            let participants = JSON.parse(localStorage.getItem('participants')) || [];
+            participants.push({ name, answers });
+            localStorage.setItem('participants', JSON.stringify(participants));
+        }
+
+        // Funkcja do wyświetlania wyników uczestników
+        function displayParticipants() {
+            let participants = JSON.parse(localStorage.getItem('participants')) || [];
+            let participantsDiv = document.getElementById('participantsList');
+            participantsDiv.innerHTML = '';
+
+            participants.forEach((participant, index) => {
+                let participantDiv = document.createElement('div');
+                participantDiv.classList.add('participant');
+                participantDiv.innerHTML = `<strong>${participant.name}</strong><br>${participant.answers.join('<br>')}`;
+                participantsDiv.appendChild(participantDiv);
+            });
+        }
+
+        // Funkcja do sprawdzania odpowiedzi
+        function checkAnswers(event) {
+            event.preventDefault();
+
+            let correctAnswers = {
+                q1: "Paryż",
+                q2: "Japonia",
+                q3: "Hawaje",
+                q4: "Mona Lisa",
+                q5: "Odyseja",
+                q6: "Wielki Mur Chiński",
+                q7: "Leonardo da Vinci",
+                q8: "Mount Everest",
+                q9: "Himalaje",
+                q10: "Delfin"
+            };
+
+            let score = 0;
+            let participantAnswers = [];
+            let results = "<h3>Twoje wyniki:</h3>";
+
+            // Sprawdzenie odpowiedzi
+            for (let key in correctAnswers) {
+                let selected = document.querySelector(`input[name="${key}"]:checked`);
+                let answerText = selected ? selected.value : "Nie zaznaczono odpowiedzi";
+                participantAnswers.push(`${key}: ${answerText}`);
+
+                // Jeżeli odpowiedź jest poprawna
+                if (selected && selected.value === correctAnswers[key]) {
+                    score++;
+                    results += `<div class="result-item"><span class="correct-icon">✅</span> <strong>${key}:</strong> Poprawna odpowiedź: ${answerText}</div>`;
+                } else if (selected) {
+                    results += `<div class="result-item"><span class="incorrect-icon">❌</span> <strong>${key}:</strong> Błędna odpowiedź! (Twoja odpowiedź: ${answerText}, Poprawna: ${correctAnswers[key]})</div>`;
+                } else {
+                    results += `<div class="result-item"><span class="incorrect-icon">❌</span> <strong>${key}:</strong> Nie zaznaczono odpowiedzi! (Poprawna: ${correctAnswers[key]})</div>`;
+                }
+            }
+
+            results += `<h4>Zdobyłeś ${score} / 10 punktów.</h4>`;
+            document.getElementById("results").innerHTML = results;
+
+            // Zapisujemy odpowiedzi uczestnika w localStorage
+            let name = document.getElementById('name').value;
+            saveParticipantAnswers(name, participantAnswers);
+
+            // Ukryj formularz po zakończeniu quizu
+            document.getElementById("quizForm").style.display = "none";
+            document.getElementById("results").style.display = "block";
+
+            // Resetujemy formularz, aby umożliwić ponowne wypełnienie quizu
+            document.getElementById('quizForm').reset();
+
+            // Wyświetlamy listę uczestników
+            displayParticipants();
+        }
+
+        // Funkcja do sprawdzenia, czy quiz został już wypełniony
+        function checkQuizStatus() {
+            document.getElementById("quizForm").style.display = "block"; // Pokazujemy formularz
+            document.getElementById("results").style.display = "none"; // Ukrywamy wyniki
+        }
+
+        // Sprawdzenie statusu quizu po załadowaniu strony
+        document.addEventListener('DOMContentLoaded', function () {
+            checkQuizStatus();
+            displayParticipants();
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Quiz</h2>
+        <form id="quizForm" onsubmit="checkAnswers(event)">
+            <label for="name">Imię i nazwisko:</label>
+            <input type="text" id="name" name="name" required>
+
+            <div class="question">
+                <p>1. Jakie jest miasto, które jest stolicą Francji?</p>
+                <label><input type="radio" name="q1" value="Paryż"> Paryż</label>
+                <label><input type="radio" name="q1" value="Londyn"> Londyn</label>
+                <label><input type="radio" name="q1" value="Berlin"> Berlin</label>
+            </div>
+
+            <div class="question">
+                <p>2. Który kraj słynie z kwitnących wiśni?</p>
+                <label><input type="radio" name="q2" value="Japonia"> Japonia</label>
+                <label><input type="radio" name="q2" value="Chiny"> Chiny</label>
+                <label><input type="radio" name="q2" value="Indie"> Indie</label>
+            </div>
+
+            <div class="question">
+                <p>3. Na jakiej wyspie znajduje się Honolulu?</p>
+                <label><input type="radio" name="q3" value="Hawaje"> Hawaje</label>
+                <label><input type="radio" name="q3" value="Azory"> Azory</label>
+                <label><input type="radio" name="q3" value="Malediwy"> Malediwy</label>
+            </div>
+
+            <div class="question">
+                <p>4. Jakie jest najczęściej rozpoznawane dzieło Leonarda da Vinci?</p>
+                <label><input type="radio" name="q4" value="Mona Lisa"> Mona Lisa</label>
+                <label><input type="radio" name="q4" value="Ostatnia Wieczerza"> Ostatnia Wieczerza</label>
+                <label><input type="radio" name="q4" value="Dama z gronostajem"> Dama z gronostajem</label>
+            </div>
+
+            <div class="question">
+                <p>5. Która z tych książek jest napisana przez Homera?</p>
+                <label><input type="radio" name="q5" value="Iliada"> Iliada</label>
+                <label><input type="radio" name="q5" value="Odyseja"> Odyseja</label>
+                <label><input type="radio" name="q5" value="Eneida"> Eneida</label>
+            </div>
+
+            <div class="question">
+                <p>6. Która z tych budowli jest w Chinach?</p>
+                <label><input type="radio" name="q6" value="Wielki Mur Chiński"> Wielki Mur Chiński</label>
+                <label><input type="radio" name="q6" value="Wieża Eiffla"> Wieża Eiffla</label>
+                <label><input type="radio" name="q6" value="Koloseum"> Koloseum</label>
+            </div>
+
+            <div class="question">
+                <p>7. Kto namalował „Ostatnią Wieczerzę”?</p>
+                <label><input type="radio" name="q7" value="Leonardo da Vinci"> Leonardo da Vinci</label>
+                <label><input type="radio" name="q7" value="Vincent van Gogh"> Vincent van Gogh</label>
+                <label><input type="radio" name="q7" value="Pablo Picasso"> Pablo Picasso</label>
+            </div>
+
+            <div class="question">
+                <p>8. Jak nazywa się najwyższa góra na świecie?</p>
+                <label><input type="radio" name="q8" value="Mount Everest"> Mount Everest</label>
+                <label><input type="radio" name="q8" value="K2"> K2</label>
+                <label><input type="radio" name="q8" value="Makalu"> Makalu</label>
+            </div>
+
+            <div class="question">
+                <p>9. W jakim łańcuchu górskim znajduje się Mount Everest?</p>
+                <label><input type="radio" name="q9" value="Alpy"> Alpy</label>
+                <label><input type="radio" name="q9" value="Himalaje"> Himalaje</label>
+                <label><input type="radio" name="q9" value="Andes"> Andes</label>
+            </div>
+
+            <div class="question">
+                <p>10. Jakie zwierzę jest symbolem inteligencji w wodzie?</p>
+                <label><input type="radio" name="q10" value="Delfin"> Delfin</label>
+                <label><input type="radio" name="q10" value="Rekin"> Rekin</label>
+                <label><input type="radio" name="q10" value="Wieloryb"> Wieloryb</label>
+            </div>
+
+            <button type="submit">Wyślij</button>
+        </form>
+        <div id="results" class="result" style="display:none;"></div>
+        <div id="participantsList" class="participants">
+            <h3>Uczestnicy:</h3>
+        </div>
+    </div>
+</body>
+</html>
